@@ -62,6 +62,8 @@ body{padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-rig
 .dbtn{font:inherit;font-size:15px;padding:8px 18px;border-radius:999px;border:.5px solid var(--border-strong);background:var(--surface-2);color:var(--text-primary);cursor:pointer;min-height:42px}
 .dbtn.pri{background:var(--bg-accent);color:var(--text-accent);border-color:var(--border-accent)}
 #dlg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);align-items:center;justify-content:center;z-index:50;padding:12px}
+#dlg.side{background:rgba(0,0,0,.06);justify-content:flex-start;align-items:center}
+@media(max-width:700px){#dlg.side{align-items:flex-end;justify-content:center}}
 #dbox{background:#fff;border:.5px solid var(--border-strong);border-radius:16px;padding:18px 20px;max-width:400px;width:100%;box-sizing:border-box;max-height:92vh;overflow:auto}
 </style>
 </head>
@@ -125,7 +127,19 @@ function tone(fr,t0,d,type,vol){if(!S.snd)return;var a=ctx();if(!a)return;var o=
 function boom(t0,vol){if(!S.snd)return;var a=ctx();if(!a)return;var n=Math.floor(a.sampleRate*0.4),b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(var i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.5);var s=a.createBufferSource(),g=a.createGain();s.buffer=b;g.gain.value=vol||0.2;s.connect(g);g.connect(a.destination);s.start(a.currentTime+t0)}
 function whistle(t0){if(!S.snd)return;var a=ctx();if(!a)return;var o=a.createOscillator(),g=a.createGain(),t=a.currentTime+t0;o.type='sine';o.frequency.setValueAtTime(500,t);o.frequency.exponentialRampToValueAtTime(1600,t+0.6);g.gain.setValueAtTime(0.05,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.65);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+0.7)}
 function fanfare(){[523,659,784,1047].forEach(function(fr,i){tone(fr,i*0.12,0.3,'triangle',0.13)})}
-function speak(s,joy){if(!S.snd)return;try{var ss=window.speechSynthesis;if(!ss)return;ss.cancel();var u=new SpeechSynthesisUtterance(s);u.lang=en()?'en-US':'ja-JP';u.rate=joy?1.1:1.05;u.pitch=joy?1.8:1.5;ss.speak(u)}catch(e){}}
+var VOICES=[],noVoiceShown=false;
+function loadVoices(){try{VOICES=window.speechSynthesis.getVoices()||[]}catch(e){VOICES=[]}}
+try{if(window.speechSynthesis){loadVoices();window.speechSynthesis.addEventListener('voiceschanged',loadVoices)}}catch(e){}
+function pickVoice(lang){loadVoices();var pre=lang=='ja'?['kyoko','otoya','google 日本語','o-ren','hattori','haruka','sayaka','ichiro','ayumi']:['samantha','google us english','karen','daniel','alex'],
+cand=VOICES.filter(function(v){return (v.lang||'').toLowerCase().replace('_','-').indexOf(lang)==0});
+if(!cand.length)return null;
+for(var i=0;i<pre.length;i++){var m=cand.filter(function(v){return v.name.toLowerCase().indexOf(pre[i])>=0});if(m.length)return m[0]}
+return cand[0]}
+function cleanSpeech(s){return String(s).replace(/[!！?？★♥♡]/g,'').replace(/[…~～]+/g,'、').replace(/[「」『』()()]/g,'').replace(/\s+/g,' ').trim()}
+function speak(s,joy){if(!S.snd)return;try{var ss=window.speechSynthesis;if(!ss)return;ss.cancel();
+var lang=en()?'en':'ja',v=pickVoice(lang),t=cleanSpeech(s);if(!t)return;
+if(!v&&!en()){if(!noVoiceShown){noVoiceShown=true;toast('この たんまつには にほんごの こえが ないので、こえは でないよ')}return}
+var u=new SpeechSynthesisUtterance(t);u.lang=v?v.lang:(en()?'en-US':'ja-JP');if(v)u.voice=v;u.rate=joy?1.1:1.05;u.pitch=joy?1.8:1.5;ss.speak(u)}catch(e){}}
 function mute(){try{window.speechSynthesis&&window.speechSynthesis.cancel()}catch(e){}}
 var CC=['#D4537E','#FAC775','#85B7EB','#639922','#7F77DD','#D85A30','#1D9E75'];
 function confetti(x,y){var A=fxs.querySelector('#fxA'),h='',i;
@@ -230,7 +244,7 @@ return '<g pointer-events="none"><rect x="'+f(x-w/2)+'" y="'+f(y)+'" width="'+w+
 function showTip(n){var g=stage.querySelector('#tipg');if(g)g.innerHTML=tipSvg(+n.getAttribute('data-x'),+n.getAttribute('data-y'),n.getAttribute('data-full'))}
 function hideTip(){var g=stage.querySelector('#tipg');if(g)g.innerHTML=''}
 function dlg(title,body,btns){
-var box=$('dbox');box.innerHTML='<div style="font-size:17px;font-weight:700;color:var(--text-primary);margin-bottom:8px"></div><div style="font-size:14px;color:var(--text-secondary);line-height:1.7"></div><div id="derr" style="font-size:13px;color:var(--text-danger);min-height:18px;margin-top:4px"></div><div id="dbt" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:8px"></div>';
+$('dlg').classList.remove('side');var box=$('dbox');box.innerHTML='<div style="font-size:17px;font-weight:700;color:var(--text-primary);margin-bottom:8px"></div><div style="font-size:14px;color:var(--text-secondary);line-height:1.7"></div><div id="derr" style="font-size:13px;color:var(--text-danger);min-height:18px;margin-top:4px"></div><div id="dbt" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:8px"></div>';
 box.children[0].textContent=title;box.children[1].innerHTML=body;
 var priBtn=null;
 btns.forEach(function(b){var e=document.createElement('button');e.className='dbtn'+(b.pri?' pri':'');e.textContent=b.l;e.onclick=function(){var r=b.cb?b.cb():true;if(r!==false)closeDlg()};$('dbt').appendChild(e);if(b.pri)priBtn=e});
@@ -245,7 +259,7 @@ function restore(sn,v){var o=JSON.parse(sn);G=o.G;CT=o.CT;S.v=v;render(true)}
 var CANCEL=function(){return T('やめる','やめる','Cancel')};
 function askText(title,msg,fs,ok){
 var body=(msg?msg+'<br>':'')+fs.map(function(x,i){return '<input id="in'+i+'" maxlength="'+x.max+'" value="'+esc(x.v||'')+'" placeholder="'+esc(x.ph||'')+'" style="margin-top:8px;font:inherit;font-size:16px;padding:9px 12px;border-radius:10px;border:.5px solid var(--border-strong);width:100%;box-sizing:border-box;background:#fff;color:var(--text-primary)">'}).join('');
-dlg(title,body,[{l:CANCEL()},{l:T('きめる','決める','OK'),pri:true,cb:function(){return ok(fs.map(function(x,i){return $('in'+i).value.trim()}))}}])}
+dlg(title,body,[{l:CANCEL()},{l:T('きめる','決める','OK'),pri:true,cb:function(){return ok(fs.map(function(x,i){return $('in'+i).value.trim()}))}}]);$('dlg').classList.add('side')}
 function needText(){$('derr').textContent=T('もじを いれてね','文字を いれてね','Please type something');return false}
 function doEdit(id){var a=id.split(':');
 if(a[0]=='c'){var c=cnames();askText(T('ゴールを かこう','ゴールを 書こう','Write your goal'),T('2ぎょうまで かけるよ。','2行まで 書けるよ。','Up to 2 lines.'),[{v:c[0],max:10,ph:T('1ぎょうめ','1行目','Line 1')},{v:c[1],max:10,ph:T('2ぎょうめ','2行目','Line 2')}],function(v){CT={h:v.slice(),k:v.slice(),e:v.slice()};render(false)});return}
