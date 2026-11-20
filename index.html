@@ -193,8 +193,8 @@ function cbub(x,y,r,sw){var ring=rbOn()?'<circle cx="'+f(x)+'" cy="'+f(y)+'" r="
 function cname(cx,cy,r,mx){var a=cnames();
 if(!a[0]&&!a[1]){return label(cx,cy-mx*0.7,T('ゴールを','ゴールを','Tap to'),r*1.7,mx,10,1,500).replace(/#2C2C2A/g,'#888780')+label(cx,cy+mx*0.7,T('かこう','書こう','write'),r*1.7,mx,10,1,500).replace(/#2C2C2A/g,'#888780')}
 return label(cx,cy-mx*0.7,a[0],r*1.7,mx,11,1,700)+label(cx,cy+mx*0.7,a[1],r*1.7,mx,11,1,700)}
-function trash(x,y,id,r){r=r||9;return '<g class="hit" data-del="'+id+'"><circle cx="'+f(x)+'" cy="'+f(y)+'" r="'+(r+7)+'" fill="transparent"/><circle cx="'+f(x)+'" cy="'+f(y)+'" r="'+r+'" fill="#fff" stroke="'+INK+'" stroke-width=".8"/><path transform="translate('+f(x)+','+f(y)+') scale('+(r/11).toFixed(2)+')" d="M-4.5 -3H4.5M-1.8 -3V-5.2H1.8V-3M-3.2 -1L-2.6 5H2.6L3.2 -1" fill="none" stroke="'+INK+'" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></g>'}
-function pen(x,y,id,r){r=r||8;return '<g class="hit" data-edit="'+id+'"><circle cx="'+f(x)+'" cy="'+f(y)+'" r="'+(r+7)+'" fill="transparent"/><circle cx="'+f(x)+'" cy="'+f(y)+'" r="'+r+'" fill="#fff" stroke="'+INK+'" stroke-width=".8"/><path transform="translate('+f(x)+','+f(y)+') scale('+(r/10).toFixed(2)+')" d="M-4 4.5L-4.8 6.3L-2.8 5.6L4.6 -1.8L2.8 -3.6ZM2.8 -3.6L4.6 -1.8" fill="none" stroke="'+INK+'" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></g>'}
+function trash(x,y,id,r){r=r||9;return '<g class="hit nosend" data-del="'+id+'"><circle cx="'+f(x)+'" cy="'+f(y)+'" r="'+(r+7)+'" fill="transparent"/><circle cx="'+f(x)+'" cy="'+f(y)+'" r="'+r+'" fill="#fff" stroke="'+INK+'" stroke-width=".8"/><path transform="translate('+f(x)+','+f(y)+') scale('+(r/11).toFixed(2)+')" d="M-4.5 -3H4.5M-1.8 -3V-5.2H1.8V-3M-3.2 -1L-2.6 5H2.6L3.2 -1" fill="none" stroke="'+INK+'" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></g>'}
+function pen(x,y,id,r){r=r||8;return '<g class="hit nosend" data-edit="'+id+'"><circle cx="'+f(x)+'" cy="'+f(y)+'" r="'+(r+7)+'" fill="transparent"/><circle cx="'+f(x)+'" cy="'+f(y)+'" r="'+r+'" fill="#fff" stroke="'+INK+'" stroke-width=".8"/><path transform="translate('+f(x)+','+f(y)+') scale('+(r/10).toFixed(2)+')" d="M-4 4.5L-4.8 6.3L-2.8 5.6L4.6 -1.8L2.8 -3.6ZM2.8 -3.6L4.6 -1.8" fill="none" stroke="'+INK+'" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></g>'}
 function mini(){
 var n=G.length,d=n<=3?54:68,r=n<=3?23:20,cr=n<=3?29:27;
 var o='<g><rect x="10" y="10" width="220" height="190" rx="16" fill="none" stroke="'+INK+'" stroke-width=".5" opacity=".5"/>';
@@ -314,7 +314,7 @@ function sendImage(){
 var no=T('ここでは おくれないよ','ここでは おくれないよ','Cannot send here');
 if(S.help){toast(T('めいんの がめんで おくってね','メインの 画面で おくってね','Go to the main screen to send'));return}
 try{hideTip();var vb=stage.viewBox.baseVal,c=stage.cloneNode(true);c.setAttribute('xmlns','http://www.w3.org/2000/svg');c.setAttribute('width',vb.width*2);c.setAttribute('height',vb.height*2);
-c.insertAdjacentHTML('afterbegin','<rect width="'+vb.width+'" height="'+vb.height+'" fill="#FBFAF5"/>');
+c.setAttribute('style',"font-family:'Hiragino Maru Gothic ProN','Hiragino Sans','Yu Gothic','Noto Sans CJK JP','Zen Maru Gothic',sans-serif");Array.prototype.forEach.call(c.querySelectorAll('.nosend'),function(e){e.remove()});var tg=c.querySelector('#tipg');if(tg)tg.innerHTML='';c.insertAdjacentHTML('afterbegin','<rect x="'+vb.x+'" y="'+vb.y+'" width="'+vb.width+'" height="'+vb.height+'" fill="#FBFAF5"/>');
 var url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(c)],{type:'image/svg+xml'})),img=new Image();
 img.onload=function(){var cv=document.createElement('canvas');cv.width=vb.width*2;cv.height=vb.height*2;cv.getContext('2d').drawImage(img,0,0);
 cv.toBlob(function(b){var fn=(S.v==-2?T('ぜんたい','全体','Overview'):S.v>=0?nm(G[S.v]):(cnames().join(' ').trim()||T('もくひょう','目標','Goals')))+' '+dstr()+'.png',file=new File([b],fn,{type:'image/png'});
